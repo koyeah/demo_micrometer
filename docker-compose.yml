@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: ./app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/bookdb
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=rootpassword
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=bookdb
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  prometheus:
+      image: prom/prometheus
+      ports:
+        - "9090:9090"
+      volumes:
+        - ./prom/prometheus.yml:/etc/prometheus/prometheus.yml
+      depends_on:
+        - app
+
+  grafana:
+      image: grafana/grafana
+      ports:
+        - "3000:3000"
+      environment:
+        - GF_SECURITY_ADMIN_PASSWORD=admin
+      volumes:
+        - grafana-storage:/var/lib/grafana
+
+  # zipkin:
+  #     image: openzipkin/zipkin
+  #     ports:
+  #       - "9411:9411"
+
+volumes:
+  mysql-data:
+  grafana-storage:
